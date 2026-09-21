@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bubble Sort – Algorithmen-Werkstatt</title>
+<link rel="icon" href="assets/jjws-bildmarke.png">
+<link rel="stylesheet" href="assets/opensans.css">
+<link rel="stylesheet" href="werkstatt.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+</head>
+<body data-algo="bubble">
+<header class="top">
+  <a class="brand" href="index.html">Algorithmen-Werkstatt</a>
+  <nav>
+    <a href="lineare-suche.html">Lineare Suche</a>
+    <a href="binaere-suche.html">Binäre Suche</a>
+    <a href="bubble-sort.html">Bubble Sort</a>
+    <a href="selection-sort.html">Selection Sort</a>
+  </nav>
+  <img src="assets/jjws-bildmarke.png" alt="JJWS">
+</header>
+<main>
+  <section class="intro">
+    <h1 id="titel"></h1>
+    <p class="kurz" id="kurz"></p>
+    <div class="fall" id="fall"></div>
+  </section>
+
+  <nav class="tabs" aria-label="Schritte">
+    <button data-tab="ansehen">1 Ansehen<span class="haken">✓</span></button>
+    <button data-tab="selbst">2 Selbst machen<span class="haken">✓</span></button>
+    <button data-tab="parsons">3 Code bauen<span class="haken">✓</span></button>
+    <button data-tab="code">4 Code schreiben<span class="haken">✓</span></button>
+  </nav>
+
+  <section class="panel" id="tab-ansehen">
+    <h2>Ansehen: der Algorithmus Schritt für Schritt</h2>
+    <p class="erklaerung">Der Rechner führt den Algorithmus aus. Rechts leuchtet die Python-Zeile, die gerade dran ist. Mit den Pfeiltasten gehst du vor und zurück, mit der Leertaste startet die Wiedergabe.</p>
+    <div class="eingaben" id="anim-eingaben"></div>
+    <div class="zweispaltig">
+      <div>
+        <div class="buehne"><div class="reihe" id="anim-liste"></div></div>
+        <div class="steuerung">
+          <button class="btn sekundaer klein" id="anim-start">⏮ Anfang</button>
+          <button class="btn sekundaer klein" id="anim-zurueck">◀ Schritt</button>
+          <button class="btn klein" id="anim-play">▶ Abspielen</button>
+          <button class="btn sekundaer klein" id="anim-vor">Schritt ▶</button>
+          <label>Tempo <input type="range" id="anim-tempo" min="1" max="10" value="5"></label>
+          <span class="status" id="anim-pos"></span>
+        </div>
+        <div class="meldung" id="anim-msg"></div>
+        <div class="zaehler" id="anim-zaehler"></div>
+      </div>
+      <pre class="codeblock" id="anim-code"></pre>
+    </div>
+  </section>
+
+  <section class="panel" id="tab-selbst">
+    <h2>Selbst machen: du bist der Algorithmus</h2>
+    <p class="erklaerung">Jetzt entscheidest du jeden Schritt. Ein falscher Schritt wird sofort gemeldet – und gezählt. Nimm für dein Arbeitsblatt eine Zufallsliste.</p>
+    <div class="eingaben" id="tr-eingaben"></div>
+    <div class="buehne"><div class="reihe" id="tr-liste"></div></div>
+    <div class="frage" id="tr-frage"></div>
+    <div class="wahl" id="tr-wahl"></div>
+    <div class="meldung" id="tr-msg"></div>
+    <div class="zaehler" id="tr-zaehler"></div>
+    <div class="zusammenfassung" id="tr-zusammenfassung" style="display:none"></div>
+    <div class="steuerung" style="margin-top:.8rem"><button class="btn sekundaer klein" id="tr-neu">↻ Neu starten</button></div>
+  </section>
+
+  <section class="panel" id="tab-parsons">
+    <h2>Code bauen: die Funktion aus Bausteinen zusammensetzen</h2>
+    <p class="erklaerung">Links liegen alle Zeilen der Python-Funktion durcheinander – und eine Zeile, die nicht dazugehört. Baue rechts das Programm in der richtigen Reihenfolge und mit der richtigen Einrückung.</p>
+    <div class="parsons">
+      <div class="spalte pool" id="p-pool-wrap"><h3>Bausteine</h3><div id="p-pool"></div></div>
+      <div class="spalte prog" id="p-prog-wrap"><h3>Dein Programm</h3><div id="p-prog"></div></div>
+    </div>
+    <div class="parsons-aktionen">
+      <button class="btn" id="p-pruefen">Prüfen</button>
+      <button class="btn sekundaer" id="p-neu">↻ Neu mischen</button>
+      <button class="btn sekundaer" id="p-uebernehmen" style="display:none">In den Editor übernehmen →</button>
+    </div>
+    <div class="meldung" id="p-msg"></div>
+  </section>
+
+  <section class="panel" id="tab-code">
+    <h2>Code schreiben: die Funktion selbst programmieren und testen</h2>
+    <div class="umschalter">
+      <button data-modus="grund">Grundaufgabe</button>
+      <button data-modus="vertiefung">Vertiefung</button>
+    </div>
+    <div class="aufgabe-box" id="code-aufgabe"></div>
+    <div class="editor-wrap"><textarea id="editor-ta" spellcheck="false" style="display:none"></textarea></div>
+    <div class="steuerung">
+      <button class="btn" id="code-run">▶ Ausführen</button>
+      <button class="btn" id="code-test">✓ Tests prüfen</button>
+      <button class="btn sekundaer" id="code-startknopf">Startcode laden</button>
+      <span class="status" id="code-status"></span>
+    </div>
+    <div class="ausgabe" id="code-ausgabe"></div>
+    <div id="code-tests"></div>
+    <div class="tipps" id="code-tipps"></div>
+  </section>
+</main>
+<footer>JJWS Heilbronn · Informationstechnik 1BK2T · Riegert · <a href="index.html">Übersicht</a></footer>
+<script src="algos.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

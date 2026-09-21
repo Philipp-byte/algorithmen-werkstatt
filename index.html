@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Algorithmen-Werkstatt – Suchen und Sortieren</title>
+<link rel="icon" href="assets/jjws-bildmarke.png">
+<link rel="stylesheet" href="assets/opensans.css">
+<link rel="stylesheet" href="werkstatt.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="index.html">Algorithmen-Werkstatt</a>
+  <nav>
+    <a href="lineare-suche.html">Lineare Suche</a>
+    <a href="binaere-suche.html">Binäre Suche</a>
+    <a href="bubble-sort.html">Bubble Sort</a>
+    <a href="selection-sort.html">Selection Sort</a>
+  </nav>
+  <img src="assets/jjws-bildmarke.png" alt="JJWS">
+</header>
+<main>
+  <section class="hero">
+    <h1>Suchen und Sortieren</h1>
+    <p>Vier Algorithmen, vier Fälle aus dem Schulalltag. Zu jedem Algorithmus gibt es vier Schritte:
+       ansehen, selbst durchklicken, den Code aus Bausteinen bauen und ihn schließlich selbst in Python schreiben und testen.</p>
+  </section>
+
+  <div class="karten" id="karten"></div>
+
+  <section class="schritte-info">
+    <h2>So arbeitest du</h2>
+    <ol>
+      <li><b>Ansehen</b> – der Rechner führt den Algorithmus vor, die passende Python-Zeile leuchtet mit.</li>
+      <li><b>Selbst machen</b> – du entscheidest jeden Schritt, die Website prüft ihn. Die Zahlen daraus kommen auf dein Arbeitsblatt.</li>
+      <li><b>Code bauen</b> – die Zeilen der Funktion liegen durcheinander; du bringst sie in Ordnung.</li>
+      <li><b>Code schreiben</b> – du programmierst die Funktion in Python und lässt sie gegen Tests laufen.</li>
+    </ol>
+    <p style="margin:.6rem 0 0;color:var(--muted);font-size:.9rem">Dein Fortschritt wird nur in diesem Browser gespeichert. Ein Haken bedeutet: Schritt erledigt.</p>
+  </section>
+</main>
+<footer>JJWS Heilbronn · Informationstechnik 1BK2T · Riegert
+  <button class="btn sekundaer klein" id="reset">Fortschritt zurücksetzen</button></footer>
+<script src="algos.js"></script>
+<script>
+(function () {
+  const reihenfolge = ['linear', 'binary', 'bubble', 'selection'];
+  const pdfs = { linear: 'material/Lineare_Suche_Arbeitsblatt.pdf', binary: 'material/Binaere_Suche_Arbeitsblatt.pdf', bubble: 'material/Bubble_Sort_Arbeitsblatt.pdf', selection: 'material/Selection_Sort_Arbeitsblatt.pdf' };
+  let f = {}; try { f = JSON.parse(localStorage.getItem('algowerkstatt.v1') || '{}'); } catch (e) {}
+  const karten = document.getElementById('karten');
+  reihenfolge.forEach((k, nr) => {
+    const A = ALGOS[k]; const p = f[k] || {};
+    const punkte = ['ansehen', 'selbst', 'parsons', 'code'].map(s => `<span class="punkt${p[s] ? ' fertig' : ''}" title="${s}"></span>`).join('');
+    const el = document.createElement('article'); el.className = 'karte';
+    el.innerHTML = `<div class="nr">Doppelstunde ${nr + 1}</div><h2>${A.name}</h2><p class="fallname">${A.fall}</p>
+      <div class="punkte">${punkte}</div>
+      <div class="aktionen"><a class="btn" href="${A.datei}">Öffnen</a><a class="pdf" href="${pdfs[k]}" target="_blank" rel="noopener">Arbeitsblatt (PDF)</a></div>`;
+    karten.appendChild(el);
+  });
+  document.getElementById('reset').addEventListener('click', () => {
+    if (confirm('Fortschritt in diesem Browser wirklich löschen?')) { try { localStorage.removeItem('algowerkstatt.v1'); } catch (e) {} location.reload(); }
+  });
+})();
+</script>
+</body>
+</html>
