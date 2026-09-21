@@ -36,6 +36,7 @@
       <li><b>Code bauen</b> – die Zeilen der Funktion liegen durcheinander; du bringst sie in Ordnung.</li>
       <li><b>Code schreiben</b> – du programmierst die Funktion in Python und lässt sie gegen Tests laufen.</li>
     </ol>
+    <p style="margin:.6rem 0 0;font-size:.95rem"><b>Ohne Rechner:</b> Die Schritt-für-Schritt-Trainer (PDF zum Durchblättern), die <a href="material/Code_Bausteine.pdf" target="_blank" rel="noopener">Code-Bausteine zum Ausschneiden</a> und die <a href="material/Rollenspiel_Karten.pdf" target="_blank" rel="noopener">Rollenspiel-Karten</a> decken dieselben Schritte auf Papier ab.</p>
     <p style="margin:.6rem 0 0;color:var(--muted);font-size:.9rem">Dein Fortschritt wird nur in diesem Browser gespeichert. Ein Haken bedeutet: Schritt erledigt.</p>
   </section>
 </main>
@@ -45,6 +46,7 @@
 <script>
 (function () {
   const reihenfolge = ['linear', 'binary', 'bubble', 'selection'];
+  const trainer = { linear: 'material/Trainer_Lineare_Suche.pdf', binary: 'material/Trainer_Binaere_Suche.pdf', bubble: 'material/Trainer_Bubble_Sort.pdf', selection: 'material/Trainer_Selection_Sort.pdf' };
   const pdfs = { linear: 'material/Lineare_Suche_Arbeitsblatt.pdf', binary: 'material/Binaere_Suche_Arbeitsblatt.pdf', bubble: 'material/Bubble_Sort_Arbeitsblatt.pdf', selection: 'material/Selection_Sort_Arbeitsblatt.pdf' };
   let f = {}; try { f = JSON.parse(localStorage.getItem('algowerkstatt.v1') || '{}'); } catch (e) {}
   const karten = document.getElementById('karten');
@@ -54,7 +56,7 @@
     const el = document.createElement('article'); el.className = 'karte';
     el.innerHTML = `<div class="nr">Doppelstunde ${nr + 1}</div><h2>${A.name}</h2><p class="fallname">${A.fall}</p>
       <div class="punkte">${punkte}</div>
-      <div class="aktionen"><a class="btn" href="${A.datei}">Öffnen</a><a class="pdf" href="${pdfs[k]}" target="_blank" rel="noopener">Arbeitsblatt (PDF)</a></div>`;
+      <div class="aktionen"><a class="btn" href="${A.datei}">Öffnen</a><a class="pdf" href="${pdfs[k]}" target="_blank" rel="noopener">Arbeitsblatt (PDF)</a><a class="pdf" href="${trainer[k]}" target="_blank" rel="noopener">Trainer (PDF)</a></div>`;
     karten.appendChild(el);
   });
   document.getElementById('reset').addEventListener('click', () => {

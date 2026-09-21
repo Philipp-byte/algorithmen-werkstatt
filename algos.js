@@ -118,7 +118,7 @@ ALGOS.binary = {
     '        mitte = (links + rechts) // 2',
     '        if liste[mitte] == gesucht:',
     '            return mitte',
-    '        elif liste[mitte] < gesucht:',
+    '        if liste[mitte] < gesucht:',
     '            links = mitte + 1',
     '        else:',
     '            rechts = mitte - 1',
@@ -156,19 +156,15 @@ ALGOS.binary = {
   parsons: {
     zeilen: [
       { code: 'def binaere_suche(liste, gesucht):', e: 0 },
-      { code: 'links = 0', e: 1 },
-      { code: 'rechts = len(liste) - 1', e: 1 },
+      { code: 'links = 0\nrechts = len(liste) - 1', e: 1 },
       { code: 'while links <= rechts:', e: 1 },
       { code: 'mitte = (links + rechts) // 2', e: 2 },
-      { code: 'if liste[mitte] == gesucht:', e: 2 },
-      { code: 'return mitte', e: 3 },
-      { code: 'elif liste[mitte] < gesucht:', e: 2 },
-      { code: 'links = mitte + 1', e: 3 },
-      { code: 'else:', e: 2 },
-      { code: 'rechts = mitte - 1', e: 3 },
+      { code: 'if liste[mitte] == gesucht:\n    return mitte', e: 2 },
+      { code: 'if liste[mitte] < gesucht:\n    links = mitte + 1', e: 2 },
+      { code: 'else:\n    rechts = mitte - 1', e: 2 },
       { code: 'return -1', e: 1 },
     ],
-    stoerer: [{ code: 'links = mitte', e: 3 }],
+    stoerer: [{ code: 'if liste[mitte] < gesucht:\n    links = mitte', e: 2 }],
   },
   aufgabe: {
     text: 'Schreibe die Funktion <code>binaere_suche(liste, gesucht)</code> für eine <b>sortierte</b> Liste. Sie gibt den Index des gesuchten Werts zurück – oder <code>-1</code>, wenn er fehlt.',
@@ -215,7 +211,9 @@ ALGOS.bubble = {
     '    for durchgang in range(n - 1):',
     '        for i in range(n - 1 - durchgang):',
     '            if liste[i] > liste[i + 1]:',
-    '                liste[i], liste[i + 1] = liste[i + 1], liste[i]',
+    '                merker = liste[i]',
+    '                liste[i] = liste[i + 1]',
+    '                liste[i + 1] = merker',
     '    return liste',
   ],
   *schritte(start) {
@@ -240,7 +238,7 @@ ALGOS.bubble = {
       yield { arr: a.slice(), fertig: festNeu, line: 2, cnt: { Durchgang: d + 1, Vergleiche: cmp, Tausch: tausch },
               msg: `Durchgang ${d + 1} beendet: ${tauschImDurchgang} Tauschvorgänge. ${a[n - 1 - d]} steht jetzt fest.${tauschImDurchgang === 0 ? ' Nichts getauscht – die Liste war schon sortiert.' : ''}` };
     }
-    yield { arr: a.slice(), fertig: alleIdx(n), line: 6, cnt: { Durchgang: n - 1, Vergleiche: cmp, Tausch: tausch }, ende: true,
+    yield { arr: a.slice(), fertig: alleIdx(n), line: 8, cnt: { Durchgang: n - 1, Vergleiche: cmp, Tausch: tausch }, ende: true,
             msg: `Fertig sortiert nach ${n - 1} Durchgängen, ${cmp} Vergleichen und ${tausch} Tauschvorgängen. return liste` };
   },
   parsons: {
@@ -250,7 +248,7 @@ ALGOS.bubble = {
       { code: 'for durchgang in range(n - 1):', e: 1 },
       { code: 'for i in range(n - 1 - durchgang):', e: 2 },
       { code: 'if liste[i] > liste[i + 1]:', e: 3 },
-      { code: 'liste[i], liste[i + 1] = liste[i + 1], liste[i]', e: 4 },
+      { code: 'merker = liste[i]\nliste[i] = liste[i + 1]\nliste[i + 1] = merker', e: 4 },
       { code: 'return liste', e: 1 },
     ],
     stoerer: [{ code: 'if liste[i] < liste[i + 1]:', e: 3 }],
@@ -267,7 +265,7 @@ ALGOS.bubble = {
     ],
     tipps: [
       'Zwei Schleifen: die äußere über die Durchgänge (<code>range(n - 1)</code>), die innere über die Nachbarpaare.',
-      'Im Vergleich <code>if liste[i] &gt; liste[i + 1]:</code> tauschst du mit <code>liste[i], liste[i + 1] = liste[i + 1], liste[i]</code>.',
+      'Im Vergleich <code>if liste[i] &gt; liste[i + 1]:</code> tauschst du mit einer Hilfsvariablen: <code>merker = liste[i]</code>, dann <code>liste[i] = liste[i + 1]</code>, dann <code>liste[i + 1] = merker</code>.',
       'Vergiss das <code>return liste</code> am Ende nicht – sonst kommt <code>None</code> zurück.',
     ],
   },
@@ -299,7 +297,9 @@ ALGOS.selection = {
     '        for i in range(start + 1, n):',
     '            if liste[i] < liste[kleinster]:',
     '                kleinster = i',
-    '        liste[start], liste[kleinster] = liste[kleinster], liste[start]',
+    '        merker = liste[start]',
+    '        liste[start] = liste[kleinster]',
+    '        liste[kleinster] = merker',
     '    return liste',
   ],
   *schritte(startListe) {
@@ -331,7 +331,7 @@ ALGOS.selection = {
       yield { arr: a.slice(), fertig: alleIdx(s + 1), line: 2, cnt: { Durchgang: s + 1, Vergleiche: cmp, Tausch: tausch },
               msg: `Der sortierte Teil reicht jetzt bis Index ${s}.` };
     }
-    yield { arr: a.slice(), fertig: alleIdx(n), line: 8, cnt: { Durchgang: n - 1, Vergleiche: cmp, Tausch: tausch }, ende: true,
+    yield { arr: a.slice(), fertig: alleIdx(n), line: 10, cnt: { Durchgang: n - 1, Vergleiche: cmp, Tausch: tausch }, ende: true,
             msg: `Fertig sortiert: ${cmp} Vergleiche, ${tausch} Tauschvorgänge (höchstens ${n - 1} wären möglich). return liste` };
   },
   parsons: {
@@ -341,9 +341,8 @@ ALGOS.selection = {
       { code: 'for start in range(n - 1):', e: 1 },
       { code: 'kleinster = start', e: 2 },
       { code: 'for i in range(start + 1, n):', e: 2 },
-      { code: 'if liste[i] < liste[kleinster]:', e: 3 },
-      { code: 'kleinster = i', e: 4 },
-      { code: 'liste[start], liste[kleinster] = liste[kleinster], liste[start]', e: 2 },
+      { code: 'if liste[i] < liste[kleinster]:\n    kleinster = i', e: 3 },
+      { code: 'merker = liste[start]\nliste[start] = liste[kleinster]\nliste[kleinster] = merker', e: 2 },
       { code: 'return liste', e: 1 },
     ],
     stoerer: [{ code: 'kleinster = liste[i]', e: 4 }],
@@ -361,7 +360,7 @@ ALGOS.selection = {
     tipps: [
       'Die äußere Schleife läuft über <code>start</code>; merke dir am Anfang <code>kleinster = start</code>.',
       'Die innere Schleife läuft von <code>start + 1</code> bis <code>n</code> und merkt sich den <b>Index</b> des kleinsten Werts: <code>kleinster = i</code>.',
-      'Nach der inneren Schleife einmal tauschen: <code>liste[start], liste[kleinster] = liste[kleinster], liste[start]</code>. Am Ende <code>return liste</code>.',
+      'Nach der inneren Schleife einmal tauschen, mit Hilfsvariable: <code>merker = liste[start]</code>, <code>liste[start] = liste[kleinster]</code>, <code>liste[kleinster] = merker</code>. Am Ende <code>return liste</code>.',
     ],
   },
   vertiefung: {

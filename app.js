@@ -369,7 +369,8 @@
   function pZeile(it, imProg) {
     const el = document.createElement('div'); el.className = 'pzeile'; el.draggable = true; el.dataset.id = it.id;
     const text = document.createElement('span'); text.className = 'codetext';
-    text.innerHTML = (imProg ? `<span class="einr" style="--e:${it.e}"></span>` : '') + hervorheben(it.code);
+    // Bausteine koennen mehrere Zeilen haben; jede bekommt die Grund-Einrueckung des Bausteins
+    text.innerHTML = it.code.split('\n').map(l => (imProg ? `<span class="einr" style="--e:${it.e}"></span>` : '') + hervorheben(l)).join('\n');
     el.appendChild(text);
     if (imProg) {
       const k = document.createElement('span'); k.className = 'knoepfe';
@@ -433,7 +434,7 @@
     merke('parsons', true);
     $('#p-uebernehmen').style.display = 'inline-block';
   }
-  function pProgrammText() { return P.prog.map(it => '    '.repeat(it.e) + it.code).join('\n') + '\n'; }
+  function pProgrammText() { return P.prog.map(it => it.code.split('\n').map(l => '    '.repeat(it.e) + l).join('\n')).join('\n') + '\n'; }
   $('#p-pruefen').addEventListener('click', pPruefen);
   $('#p-neu').addEventListener('click', () => { $('#p-uebernehmen').style.display = 'none'; pInit(); });
   $('#p-uebernehmen').addEventListener('click', () => { setzeCode(pProgrammText()); zeigeTab('code'); });
