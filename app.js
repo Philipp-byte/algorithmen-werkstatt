@@ -80,38 +80,95 @@
   function zaehlerAnzeigen(el, cnt) {
     el.innerHTML = Object.keys(cnt || {}).map(k => `<span>${k}: <b>${cnt[k]}</b></span>`).join('');
   }
+  const GANZZAHL = /^[+-]?\d+$/;
   function parseListe(text) {
     const teile = text.split(/[,;\s]+/).filter(Boolean);
-    if (!teile.length) return null;
-    const zahlen = teile.map(t => Number(t));
-    if (zahlen.some(z => !Number.isInteger(z))) return null;
-    return zahlen;
+    if (!teile.length || teile.some(t => !GANZZAHL.test(t))) return null;
+    return teile.map(t => Number(t));
   }
   function meldung(el, text, art) {
     el.textContent = text; el.className = 'meldung' + (art ? ' ' + art : '');
   }
 
   /* ---------------------------------------------------------- Eingaben (Liste / gesuchter Wert) */
-  function eingabenBauen(container, onUebernehmen) {
+  // Aenderungen gelten sofort: kurz nach dem Tippen, bei Enter und beim Verlassen des Feldes.
+  // Ungueltige Eingaben werden unter den Feldern gemeldet; die Anzeige behaelt dann den letzten gueltigen Stand.
+  function pruefeEingaben(textListe, textZiel) {
+    const liste = parseListe(textListe);
+    if (!liste || liste.length < 2 || liste.length > 16) return { feld: 'liste', fehler: 'Bitte 2 bis 16 ganze Zahlen eingeben, durch Kommas getrennt.' };
+    if (liste.some(z => z < -999 || z > 9999)) return { feld: 'liste', fehler: 'Bitte nur Zahlen von −999 bis 9999 verwenden.' };
+    const sortiert = A.sortiert ? liste.slice().sort((a, b) => a - b) : liste;
+    const umsortiert = sortiert.some((z, i) => z !== liste[i]);
+    if (!istSuche) return { liste: sortiert, gesucht: null, umsortiert };
+    const t = textZiel.trim();
+    if (!t) return { feld: 'ziel', fehler: 'Bitte einen gesuchten Wert eingeben.' };
+    if (!GANZZAHL.test(t)) return { feld: 'ziel', fehler: 'Der gesuchte Wert muss eine ganze Zahl sein.' };
+    return { liste: sortiert, gesucht: Number(t), umsortiert };
+  }
+  function eingabenBauen(container, onUebernehmen, tipp) {
     container.innerHTML = `
-      <div class="zeile"><span>Liste:</span><input type="text" class="liste" spellcheck="false"></div>
-      <div class="zeile">${istSuche ? '<span>gesucht:</span><input type="text" class="ziel" inputmode="numeric">' : ''}
+      <div class="zeile"><span>Liste:</span><input type="text" class="liste" spellcheck="false" aria-label="Liste"></div>
+      <div class="zeile">${istSuche ? '<span>gesucht:</span><input type="text" class="ziel" inputmode="numeric" aria-label="gesuchter Wert">' : ''}
         <button class="btn klein sekundaer fallknopf">Fall-Daten</button>
         <button class="btn klein sekundaer zufallknopf">Zufallsliste</button>
-        <button class="btn klein uebernehmen">Übernehmen</button></div>`;
-    const inListe = $('.liste', container), inZiel = $('.ziel', container);
-    const setze = (liste, gesucht) => { inListe.value = liste.join(', '); if (inZiel) inZiel.value = gesucht; };
-    $('.fallknopf', container).addEventListener('click', () => { setze(A.liste, A.gesucht); onUebernehmen(A.liste.slice(), A.gesucht); });
-    $('.zufallknopf', container).addEventListener('click', () => { const z = A.zufall(); setze(z.liste, z.gesucht); onUebernehmen(z.liste, z.gesucht); });
-    $('.uebernehmen', container).addEventListener('click', () => {
-      let liste = parseListe(inListe.value);
-      if (!liste || liste.length < 2 || liste.length > 16) { alert('Bitte 2 bis 16 ganze Zahlen eingeben, durch Kommas getrennt.'); return; }
-      if (A.sortiert) { liste = liste.slice().sort((a, b) => a - b); inListe.value = liste.join(', '); }
-      let gesucht = null;
-      if (istSuche) { gesucht = Number(inZiel.value); if (!Number.isInteger(gesucht)) { alert('Bitte einen gesuchten Wert eingeben.'); return; } }
-      onUebernehmen(liste, gesucht);
+        <button class="btn klein uebernehmen">Übernehmen</button></div>
+      <div class="eingabe-status" aria-live="polite"></div>`;
+    const inListe = $('.liste', container), inZiel = $('.ziel', container), statusEl = $('.eingabe-status', container);
+    let zuletzt = null, timer = null;
+    function zeigeStatus(text, art) { statusEl.textContent = text; statusEl.className = 'eingabe-status' + (art ? ' ' + art : ''); }
+    function zeigeOk(liste, gesucht, umsortiert) {
+      [inListe, inZiel].forEach(f => f && f.classList.remove('ungueltig'));
+      let text = istSuche ? `Angezeigt: Suche nach ${gesucht} in einer Liste mit ${liste.length} Zahlen.` : `Angezeigt: Liste mit ${liste.length} Zahlen.`;
+      if (umsortiert) text += ' Die binäre Suche braucht eine sortierte Liste – deine Zahlen wurden der Größe nach sortiert.';
+      if (tipp) text += ' ' + tipp;
+      zeigeStatus(text, umsortiert ? 'hinweis' : '');
+    }
+    function uebernehme(liste, gesucht, umsortiert) {
+      clearTimeout(timer);
+      inListe.value = liste.join(', '); if (inZiel) inZiel.value = gesucht;
+      zuletzt = JSON.stringify([liste, gesucht]);
+      zeigeOk(liste, gesucht, umsortiert);
+      onUebernehmen(liste.slice(), gesucht);
+    }
+    // art: 'tippen' (waehrend der Eingabe), 'fertig' (Enter / Feld verlassen), 'knopf' (Übernehmen, startet immer neu)
+    function ausFeldern(art) {
+      clearTimeout(timer);
+      const e = pruefeEingaben(inListe.value, inZiel ? inZiel.value : '');
+      if (e.fehler) {
+        [inListe, inZiel].forEach(f => f && f.classList.toggle('ungueltig', f === (e.feld === 'ziel' ? inZiel : inListe)));
+        zeigeStatus(e.fehler + (zuletzt ? ' Angezeigt wird noch die letzte gültige Eingabe.' : ''), 'err');
+        return;
+      }
+      if (art !== 'knopf' && JSON.stringify([e.liste, e.gesucht]) === zuletzt) {
+        if (art === 'fertig') inListe.value = e.liste.join(', ');
+        zeigeOk(e.liste, e.gesucht, e.umsortiert);
+        return;
+      }
+      if (art === 'tippen') {
+        // das Feld nicht umschreiben, solange getippt wird
+        zuletzt = JSON.stringify([e.liste, e.gesucht]);
+        zeigeOk(e.liste, e.gesucht, e.umsortiert);
+        onUebernehmen(e.liste.slice(), e.gesucht);
+        return;
+      }
+      uebernehme(e.liste, e.gesucht, e.umsortiert);
+    }
+    [inListe, inZiel].forEach(f => {
+      if (!f) return;
+      f.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(() => ausFeldern('tippen'), 600); });
+      f.addEventListener('change', () => ausFeldern('fertig'));
+      f.addEventListener('keydown', ev => { if (ev.key === 'Enter') { ev.preventDefault(); ausFeldern('fertig'); } });
     });
-    setze(A.liste, A.gesucht);
+    $('.fallknopf', container).addEventListener('click', () => uebernehme(A.liste.slice(), A.gesucht, false));
+    $('.zufallknopf', container).addEventListener('click', () => { const z = A.zufall(); uebernehme(z.liste, z.gesucht, false); });
+    $('.uebernehmen', container).addEventListener('click', () => ausFeldern('knopf'));
+    inListe.value = A.liste.join(', '); if (inZiel) inZiel.value = A.gesucht;
+    zuletzt = JSON.stringify([A.liste, istSuche ? A.gesucht : null]);
+    zeigeOk(A.liste, A.gesucht, false);
+    return {
+      setze(liste, gesucht) { uebernehme(liste.slice(), gesucht, false); },
+      waehle(gesucht) { if (inZiel) { inZiel.value = gesucht; ausFeldern('fertig'); } },
+    };
   }
 
   /* ============================================================ 1 ANSEHEN */
@@ -124,7 +181,8 @@
   }
   function animZeige() {
     const s = anim.schritte[anim.k];
-    renderListe(animListe, s);
+    // bei den Suchen: eine Zahl anklicken = als gesuchten Wert nehmen
+    renderListe(animListe, s, istSuche ? { klickbar: true, onClick: i => animEin.waehle(anim.liste[i]) } : {});
     meldung(animMsg, s.msg, s.ende ? 'ok' : '');
     zaehlerAnzeigen(animCnt, s.cnt);
     renderCode(animCode, A.code, s.line);
@@ -149,11 +207,12 @@
   $('#anim-vor').addEventListener('click', () => { animStop(); if (anim.k < anim.schritte.length - 1) { anim.k += 1; animZeige(); } });
   $('#anim-play').addEventListener('click', animPlay);
   $('#anim-tempo').addEventListener('input', () => { if (anim.timer) { animStop(); animPlay(); } });
-  eingabenBauen($('#anim-eingaben'), (liste, gesucht) => { anim.liste = liste; anim.gesucht = gesucht; animNeu(); });
+  const animEin = eingabenBauen($('#anim-eingaben'), (liste, gesucht) => { anim.liste = liste; anim.gesucht = gesucht; animNeu(); },
+    istSuche ? 'Tipp: Klicke eine Zahl in der Liste an, um sie zu suchen.' : '');
   if (istSuche && A.alternative) {
     const b = document.createElement('button'); b.className = 'btn klein sekundaer'; b.textContent = `Fall: ${A.alternative} (fehlt)`;
-    $('#anim-eingaben .zeile:last-child').appendChild(b);
-    b.addEventListener('click', () => { $('#anim-eingaben .liste').value = A.liste.join(', '); $('#anim-eingaben .ziel').value = A.alternative; anim.liste = A.liste.slice(); anim.gesucht = A.alternative; animNeu(); });
+    $('#anim-eingaben .uebernehmen').before(b);
+    b.addEventListener('click', () => animEin.setze(A.liste, A.alternative));
   }
   document.addEventListener('keydown', e => {
     if (!$('#tab-ansehen').classList.contains('aktiv') || /INPUT|TEXTAREA/.test(document.activeElement.tagName) || document.activeElement.classList.contains('CodeMirror-code')) return;

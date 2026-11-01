@@ -104,6 +104,10 @@ footer button { margin-left: .6rem; }
 .eingaben .zeile { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
 .eingaben .zeile span { font-size: .85rem; color: var(--muted); white-space: nowrap; }
 .eingaben input.ziel { width: 110px; }
+.eingaben input.ungueltig { border-color: var(--err); background: var(--err-bg); }
+.eingaben .eingabe-status { grid-column: 1 / -1; min-height: 1.3em; margin-top: -.2rem; font-size: .85rem; color: var(--muted); }
+.eingaben .eingabe-status.err { color: var(--err); font-weight: 600; }
+.eingaben .eingabe-status.hinweis { color: #8A5A00; }
 
 /* Code-Anzeige */
 .zweispaltig { display: grid; grid-template-columns: 1.4fr 1fr; gap: 1rem; align-items: start; }
@@ -163,7 +167,7 @@ table.tests tr.fail td:first-child::before { content: "✗ "; color: var(--err);
 
 @media (max-width: 760px) {
   body { font-size: 15px; }
-  .zweispaltig, .parsons { grid-template-columns: 1fr; }
+  .zweispaltig, .parsons, .eingaben { grid-template-columns: 1fr; }
   .zelle, .box { width: 46px; } .box { height: 40px; font-size: .9rem; }
   .reihe { gap: 5px; }
   .top nav { display: none; }
